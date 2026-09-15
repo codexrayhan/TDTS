@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/smalakar-is-here/TDTS#readme
+    about: Check the README first — most questions are answered there.
+  - name: 💬 Discussions
+    url: https://github.com/smalakar-is-here/TDTS/discussions
+    about: Ask questions and discuss with the community.
+  - name: 🔒 Security Report
+    url: mailto:noreply@tdts.dev
+    about: Report security vulnerabilities privately.

@@ -1,0 +1,13 @@
+import { useEffect, useState } from "react";
+import { Building2, Crown } from "lucide-react";
+import { getLeaderboard, type LeaderboardEntry } from "../../../lib/api";
+import { AppAvatar } from "../AppAvatar";
+import { Skeleton } from "../../ui/skeleton";
+import type { ScreenId } from "../AppShell";
+
+export function GlobalLeaderboardScreen({ onNavigate: _onNavigate }: { onNavigate?: (id: ScreenId) => void }) {
+  const [rows, setRows] = useState<LeaderboardEntry[] | null>(null);
+  const workspace = ["Checkout Team", "Platform", "Product Workspace", "Growth Workspace", "Platform", "Design Studio"];
+  useEffect(() => { getLeaderboard().then(setRows).catch(() => setRows([])); }, []);
+  return <div><h1 className="tdts-page-title">Global Leaderboard</h1><p className="mt-1 text-sm text-muted-foreground">Top performers across the entire company, normalized by delivery quality.</p><div className="mt-5 grid gap-4 lg:grid-cols-[1fr_320px]"><section className="tdts-card overflow-hidden"><div className="grid grid-cols-[60px_1fr_160px_110px] bg-bg-faint px-4 py-3 text-xs text-muted-foreground"><span>Rank</span><span>Employee</span><span>Workspace</span><span>Points</span></div>{!rows ? Array.from({ length: 5 }, (_, index) => <div key={index} className="p-4"><Skeleton className="h-10 w-full" /></div>) : rows.map((entry, index) => <div key={entry.id} className="grid grid-cols-[60px_1fr_160px_110px] items-center border-t border-border-secondary px-4 py-4 text-sm"><span className="font-semibold">#{index + 1}</span><span className="flex items-center gap-3"><AppAvatar initials={entry.employee.initials} size="sm" /><span>{entry.employee.name}</span></span><span className="flex items-center gap-1.5 text-xs text-muted-foreground"><Building2 className="h-3 w-3" />{workspace[index % workspace.length]}</span><span className="tdts-tabular font-semibold">{entry.points}</span></div>)}</section><aside className="tdts-card p-5"><Crown className="h-8 w-8 text-warning" /><h2 className="mt-4 font-semibold">Company Champion</h2><p className="mt-1 text-sm text-muted-foreground">{rows?.[0] ? `${rows[0].employee.name} leads with a ${rows[0].completion}% on-time completion rate and ${rows[0].points.toLocaleString()} points.` : "Loading company performance…"}</p><div className="mt-5 rounded-xl bg-brand-tertiary p-4 text-xs leading-5 text-brand-primary">Global rankings are visible to Super Admins. Workspace leaderboards remain scoped to their own teams.</div></aside></div></div>;
+}

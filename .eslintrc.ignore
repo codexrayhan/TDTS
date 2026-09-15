@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.vite/
+prisma/migrations/
+docs/
+*.md

@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  createdAt    DateTime @default(now())
+  tasks        Task[]
+}
+
+model Employee {
+  id             String   @id @default(cuid())
+  name           String
+  initials       String
+  title          String
+  workload       Workload
+  completionRate Int
+  tasks          Task[]
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  priority    Priority
+  status      TaskStatus
+  deadline    DateTime
+  project     String
+  assigneeId  String?
+  assignee    Employee?  @relation(fields: [assigneeId], references: [id])
+  creatorId   String?
+  creator     User?      @relation(fields: [creatorId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Reward {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeName String
+  points    Int
+  earnedAt  DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+  EMPLOYEE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum Workload {
+  AVAILABLE
+  MODERATE
+  OVERLOADED
+}
