@@ -2,7 +2,7 @@ import type { Ref } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { motion } from "motion/react";
-import { GripVertical, Plus } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import type { Employee, Task, TaskStatus } from "./data";
 import { employees as fallbackEmployees } from "./data";
@@ -25,15 +25,15 @@ function TaskCard({ task, people, onOpen }: { task: Task; people: Employee[]; on
   </motion.div>;
 }
 
-function Column({ status, tasks, people, move, onOpen, onCreate }: { status: TaskStatus; tasks: Task[]; people: Employee[]; move: (id: string, status: TaskStatus) => void; onOpen?: (task: Task) => void; onCreate?: () => void }) {
+function Column({ status, tasks, people, move, onOpen }: { status: TaskStatus; tasks: Task[]; people: Employee[]; move: (id: string, status: TaskStatus) => void; onOpen?: (task: Task) => void }) {
   const [{ over }, drop] = useDrop(() => ({ accept: ITEM, drop: (item: { id: string }) => move(item.id, status), collect: (monitor) => ({ over: monitor.isOver() }) }), [status, move]);
   return <div ref={drop as unknown as Ref<HTMLDivElement>} className={`min-w-[255px] flex-1 rounded-xl border border-border-secondary bg-bg-faint/70 p-2 transition ${over ? "ring-2 ring-brand-primary/30" : ""}`}>
-    <div className="flex items-center justify-between px-1 py-2"><div className="text-xs font-semibold uppercase tracking-[.05em]">{status} <span className="ml-1 text-muted-foreground">{tasks.length}</span></div><button onClick={onCreate} className="grid h-7 w-7 place-items-center rounded-md hover:bg-bg-subtle"><Plus className="h-3.5 w-3.5" /></button></div>
+    <div className="flex items-center justify-between px-1 py-2"><div className="text-xs font-semibold uppercase tracking-[.05em]">{status} <span className="ml-1 text-muted-foreground">{tasks.length}</span></div></div>
     <div className="grid gap-2">{tasks.map((task) => <TaskCard key={task.id} task={task} people={people} onOpen={onOpen} />)}</div>
   </div>;
 }
 
-export function KanbanBoard({ onOpenTask, onCreateTask, ownOnly = false }: { onOpenTask?: (task: Task) => void; onCreateTask?: () => void; ownOnly?: boolean }) {
+export function KanbanBoard({ onOpenTask, ownOnly = false }: { onOpenTask?: (task: Task) => void; onCreateTask?: () => void; ownOnly?: boolean }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [people, setPeople] = useState<Employee[]>(fallbackEmployees);
   const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ export function KanbanBoard({ onOpenTask, onCreateTask, ownOnly = false }: { onO
   };
   const groups = useMemo(() => Object.fromEntries(statuses.map((status) => [status, tasks.filter((task) => task.status === status)])) as Record<TaskStatus, Task[]>, [tasks]);
 
-  return <section className="tdts-card overflow-hidden p-4"><div className="mb-4 flex items-center justify-between"><div><h2 className="tdts-heading">{ownOnly ? "My Task Board" : "Live Task Board"}</h2><p className="text-xs text-muted-foreground">Drag cards between stages to update status</p></div><button onClick={onCreateTask} className="rounded-md bg-brand-primary px-3 py-2 text-xs font-semibold text-white">+ Create Task</button></div>
-    {loading ? <div className="grid grid-cols-4 gap-3 overflow-hidden">{statuses.map((status) => <div key={status} className="min-w-[220px] rounded-xl bg-bg-faint p-3"><Skeleton className="h-4 w-24" /><Skeleton className="mt-4 h-28 w-full" /><Skeleton className="mt-2 h-28 w-full" /></div>)}</div> : <div className="flex gap-3 overflow-x-auto pb-2">{statuses.map((status) => <Column key={status} status={status} tasks={groups[status]} people={people} move={move} onOpen={onOpenTask} onCreate={onCreateTask} />)}</div>}
+  return <section className="tdts-card overflow-hidden p-4"><div className="mb-4 flex items-center justify-between"><div><h2 className="tdts-heading">{ownOnly ? "My Task Board" : "Live Task Board"}</h2><p className="text-xs text-muted-foreground">Drag cards between stages to update status</p></div></div>
+    {loading ? <div className="grid grid-cols-4 gap-3 overflow-hidden">{statuses.map((status) => <div key={status} className="min-w-[220px] rounded-xl bg-bg-faint p-3"><Skeleton className="h-4 w-24" /><Skeleton className="mt-4 h-28 w-full" /><Skeleton className="mt-2 h-28 w-full" /></div>)}</div> : <div className="flex gap-3 overflow-x-auto pb-2">{statuses.map((status) => <Column key={status} status={status} tasks={groups[status]} people={people} move={move} onOpen={onOpenTask} />)}</div>}
   </section>;
 }
