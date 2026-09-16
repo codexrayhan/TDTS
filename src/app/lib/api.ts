@@ -61,6 +61,26 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+// In mock mode there is no real backend, so signed-up accounts have to be
+// remembered somewhere for login to find them again. We keep a small
+// directory in localStorage: email -> { name, password, role }.
+const MOCK_USERS_KEY = "tdts-mock-users";
+type MockUserRecord = { id: string; name: string; email: string; password: string; role: AuthUser["role"] };
+
+function readMockUsers(): Record<string, MockUserRecord> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(MOCK_USERS_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeMockUsers(users: Record<string, MockUserRecord>) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+}
+
 function mockUserForEmail(email: string, fallbackRole: AuthUser["role"] = "admin"): AuthUser {
   const lower = email.toLowerCase();
   if (lower.includes("kamrul")) return { id: "user-super", name: "Kamrul Islam", email: lower, role: "super" };
@@ -72,7 +92,18 @@ function mockUserForEmail(email: string, fallbackRole: AuthUser["role"] = "admin
 export async function loginRequest(email: string, password: string, demoRole: AuthUser["role"] = "admin") {
   if (USE_MOCK) {
     await delay(180);
+    const lower = email.toLowerCase();
+    const users = readMockUsers();
+    const existing = users[lower];
+    if (existing) {
+      // A real signed-up account exists for this email — it always wins over
+      // any role picked on the login screen, and the password must match.
+      if (existing.password !== password) throw new Error("Invalid email or password");
+      const { password: _pw, ...user } = existing;
+      return { token: "demo-token", user } satisfies AuthResponse;
+    }
     if (password.length < 4) throw new Error("Invalid email or password");
+    // Not a signed-up account — fall back to the built-in sample accounts.
     return { token: "demo-token", user: mockUserForEmail(email, demoRole) } satisfies AuthResponse;
   }
   return request<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
@@ -81,7 +112,14 @@ export async function loginRequest(email: string, password: string, demoRole: Au
 export async function signupRequest(payload: { name: string; email: string; password: string; role: AuthUser["role"] }) {
   if (USE_MOCK) {
     await delay(180);
-    return { token: "demo-token", user: { id: `demo-${payload.role}`, name: payload.name, email: payload.email, role: payload.role } } satisfies AuthResponse;
+    const lower = payload.email.toLowerCase();
+    const users = readMockUsers();
+    if (users[lower]) throw new Error("Email already registered");
+    const record: MockUserRecord = { id: `demo-${payload.role}-${Date.now()}`, name: payload.name, email: lower, password: payload.password, role: payload.role };
+    users[lower] = record;
+    writeMockUsers(users);
+    const { password: _pw, ...user } = record;
+    return { token: "demo-token", user } satisfies AuthResponse;
   }
   return request<AuthResponse>("/auth/signup", { method: "POST", body: JSON.stringify(payload) });
 }
