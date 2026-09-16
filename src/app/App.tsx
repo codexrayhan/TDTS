@@ -71,7 +71,7 @@ function AppRuntime() {
   const [requiredRole, setRequiredRole] = useState<Role | undefined>();
   const [themeInitialized, setThemeInitialized] = useState(false);
 
-  useEffect(() => { const saved = window.localStorage.getItem("tdts-theme"); if (saved === "light" || saved === "dark") setTheme(saved); setThemeInitialized(true); }, [setTheme]);
+  useEffect(() => { const saved = window.localStorage.getItem("tdts-theme"); if (saved === "light" || saved === "dark") setTheme(saved); setThemeInitialized(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!themeInitialized) return; if (theme === "light" || theme === "dark") window.localStorage.setItem("tdts-theme", theme); }, [theme, themeInitialized]);
   useEffect(() => { if (appState === "app") window.localStorage.setItem("tdts-session", JSON.stringify({ role, screen, token } satisfies StoredSession)); }, [appState, role, screen, token]);
   useEffect(() => { if (!isMockMode() && appState === "app" && !token) { window.localStorage.removeItem("tdts-session"); setAppState("landing"); } }, [appState, token]);
