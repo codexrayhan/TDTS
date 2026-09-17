@@ -23,7 +23,7 @@ router.get("/", async (_req: any, res: any) => {
       workload: employee.workload.toLowerCase(),
       completionRate: employee.completionRate,
     },
-  })).filter((row) => row.points > 0).sort((a, b) => b.points - a.points);
+  })).sort((a, b) => b.points - a.points);
   return res.json(rows);
 });
 
