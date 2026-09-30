@@ -29,6 +29,13 @@ import { NotificationCenter } from "./NotificationCenter";
 import { TDTSWordmark } from "./TDTSLogo";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { roleProfiles } from "./data";
+import type { AuthUser } from "../../lib/api";
+
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = (parts[0]?.[0] || "") + (parts[1]?.[0] || "");
+  return initials.toUpperCase() || "U";
+}
 
 export type Role = "admin" | "super" | "employee";
 export type ScreenId =
@@ -171,17 +178,21 @@ function ThemeToggle() {
 function Header({
   active,
   role,
+  user,
   onProfile,
   onSignOut,
   onMenu,
 }: {
   active: ScreenId;
   role: Role;
+  user?: AuthUser | null;
   onProfile: () => void;
   onSignOut: () => void;
   onMenu?: () => void;
 }) {
-  const profile = roleProfiles[role];
+  const profile = user
+    ? { name: user.name, badge: roleProfiles[role].badge, initials: initialsFor(user.name) }
+    : roleProfiles[role];
   const openCommands = () => window.dispatchEvent(new Event("tdts:command"));
 
   return (
@@ -228,16 +239,17 @@ function Header({
     </header>
   );
 }
-
 export function AppShell({
   active,
   role,
+  user,
   onNavigate,
   onSignOut,
   children,
 }: {
   active: ScreenId;
   role: Role;
+  user?: AuthUser | null;
   onNavigate: (id: ScreenId) => void;
   onSignOut: () => void;
   children: ReactNode;
@@ -270,7 +282,7 @@ export function AppShell({
             <SideNav role={role} active={active} collapsed={false} onNavigate={go} />
           </DrawerContent>
         </Drawer>
-        <Header active={active} role={role} onProfile={() => go("profile")} onSignOut={onSignOut} onMenu={() => setMobileOpen(true)} />
+        <Header active={active} role={role} user={user} onProfile={() => go("profile")} onSignOut={onSignOut} onMenu={() => setMobileOpen(true)} />
         <main className="mx-auto w-full max-w-[1600px] p-4 md:p-6">{children}</main>
       </div>
     );
@@ -294,7 +306,7 @@ export function AppShell({
       <ResizableHandle />
       <ResizablePanel defaultSize={82}>
         <div className="min-h-screen">
-          <Header active={active} role={role} onProfile={() => go("profile")} onSignOut={onSignOut} />
+          <Header active={active} role={role} user={user} onProfile={() => go("profile")} onSignOut={onSignOut} />
           <main className="mx-auto w-full max-w-[1600px] p-4 md:p-6">{children}</main>
         </div>
       </ResizablePanel>

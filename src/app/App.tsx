@@ -63,7 +63,9 @@ function ScreenFallback() {
 
 function AppRuntime() {
   const { theme, setTheme, toggleTheme } = useTheme();
-  const { token, logout } = useAuth();
+  // const { token, logout } = useAuth();
+  const { token, user, logout } = useAuth();
+
   const [bootSession] = useState<StoredSession | null>(() => readSession());
   const [appState, setAppState] = useState<AppState>(() => bootSession ? "app" : "loading");
   const [role, setRole] = useState<Role>(() => bootSession?.role ?? "admin");
@@ -100,7 +102,8 @@ function AppRuntime() {
       case "emp-performance": return <MyPerformanceScreen onNavigate={navigate} />;
       case "emp-rewards": return <RewardsScreen onNavigate={navigate} />;
       case "emp-settings": return <EmployeeSettingsScreen onNavigate={navigate} />;
-      case "profile": return <ProfileScreen role={role} onNavigate={navigate} />;
+      // case "profile": return <ProfileScreen role={role} onNavigate={navigate} />;
+      case "profile": return <ProfileScreen role={role} user={user} onNavigate={navigate} />;
       case "access-denied": return <AccessDeniedScreen role={role} requiredRole={requiredRole} onNavigate={navigate} />;
       case "not-found": return <NotFoundScreen onNavigate={navigate} />;
       default: return <NotFoundScreen onNavigate={navigate} />;
@@ -117,7 +120,8 @@ function AppRuntime() {
     case "forgot": content = <ForgotPasswordScreen onBack={() => setAppState("login")} onReset={() => setAppState("reset")} />; break;
     case "reset": content = <ResetPasswordScreen onBack={() => setAppState("forgot")} onDone={() => setAppState("login")} />; break;
     case "sso": content = <SsoRedirectScreen onBack={() => setAppState("login")} onComplete={() => enterApp("admin")} />; break;
-    case "app": content = <AppShell active={screen} role={role} onNavigate={navigate} onSignOut={signOut}>{renderScreen()}</AppShell>; break;
+    // case "app": content = <AppShell active={screen} role={role} onNavigate={navigate} onSignOut={signOut}>{renderScreen()}</AppShell>; break;
+    case "app": content = <AppShell active={screen} role={role} user={user} onNavigate={navigate} onSignOut={signOut}>{renderScreen()}</AppShell>; break;
   }
 
   return <><Suspense fallback={<ScreenFallback />}>{content}</Suspense><CommandPalette authenticated={appState === "app"} onNavigate={navigate} onToggleTheme={toggleTheme} onSignOut={signOut} /><Toaster position="bottom-right" richColors closeButton /><OnboardingTour open={showTour} onFinish={() => setShowTour(false)} /></>;
