@@ -1,5 +1,5 @@
 import type { Ref } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { motion } from "motion/react";
 import { GripVertical, Plus } from "lucide-react";
@@ -38,6 +38,10 @@ export function KanbanBoard({ onOpenTask, onCreateTask, ownOnly = false, project
   const [people, setPeople] = useState<Employee[]>(fallbackEmployees);
   const [loading, setLoading] = useState(true);
 
+  // Always holds the latest tasks so `move` can stay stable between renders
+  const tasksRef = useRef<Task[]>([]);
+  tasksRef.current = tasks;
+
   useEffect(() => {
     let active = true;
     Promise.all([getTasks(), getEmployees()]).then(([nextTasks, nextPeople]) => {
@@ -50,14 +54,20 @@ export function KanbanBoard({ onOpenTask, onCreateTask, ownOnly = false, project
     return () => { active = false; };
   }, [ownOnly, projectFilter]);
 
-  const move = (id: string, status: TaskStatus) => {
-    const before = tasks;
+  const move = useCallback((id: string, status: TaskStatus) => {
+    const current = tasksRef.current.find((task) => task.id === id);
+    if (!current || current.status === status) return; // same column: nothing to save
+
+    const previousStatus = current.status;
     setTasks((previous) => previous.map((task) => task.id === id ? { ...task, status } : task));
+
     updateTask(id, { status }).catch((error) => {
-      setTasks(before);
+      // roll back only this card
+      setTasks((previous) => previous.map((task) => task.id === id ? { ...task, status: previousStatus } : task));
       toast.error("Task status not saved", { id: "kanban-update-error", description: error.message });
     });
-  };
+  }, []);
+
   const groups = useMemo(() => Object.fromEntries(statuses.map((status) => [status, tasks.filter((task) => task.status === status)])) as Record<TaskStatus, Task[]>, [tasks]);
 
   return <section className="tdts-card overflow-hidden p-4"><div className="mb-4 flex items-center justify-between"><div><h2 className="tdts-heading">{ownOnly ? "My Task Board" : "Live Task Board"}</h2><p className="text-xs text-muted-foreground">Drag cards between stages to update status</p></div>{onCreateTask && <button onClick={onCreateTask} className="rounded-md bg-brand-primary px-3 py-2 text-xs font-semibold text-white"><Plus className="inline h-3.5 w-3.5" /> Create Task</button>}</div>

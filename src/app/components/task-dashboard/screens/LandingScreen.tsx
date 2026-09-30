@@ -5,7 +5,7 @@ import { TDTSWordmark } from "../TDTSLogo";
 import { landingStats } from "../data";
 import heroImage from "../../../../imports/image.png";
 
-export function LandingScreen({ onGetStarted, onLogin, onPricing }: { onGetStarted?: () => void; onLogin?: () => void; onPricing?: () => void }) {
+export function LandingScreen({ onGetStarted, onLogin, onPricing, onDocs }: { onGetStarted?: () => void; onLogin?: () => void; onPricing?: () => void; onDocs?: () => void }) {
   const features = [
     [BrainCircuit, "AI Smart Delegation", "Recommend the strongest assignee using skills, workload, availability and delivery history."],
     [Columns3, "Live Kanban", "Keep every task stage visible and move work with simple drag-and-drop."],
@@ -18,6 +18,7 @@ export function LandingScreen({ onGetStarted, onLogin, onPricing }: { onGetStart
       <header className="mx-auto flex h-16 max-w-7xl items-center px-5">
         <TDTSWordmark />
         <nav className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" onClick={onDocs}>Documentation</Button>
           <Button variant="ghost" onClick={onPricing}>Pricing</Button>
           <Button variant="ghost" onClick={onLogin}>Log in</Button>
           <Button className="bg-brand-primary text-white" onClick={onGetStarted}>Get started</Button>

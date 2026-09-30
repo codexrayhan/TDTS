@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Globe, ChevronDown } from "lucide-react";
+import { GroupInfoDialog } from "./GroupInfoDialog";
 
 const languages = ["English", "বাংলা", "Español", "Français", "हिन्दी"];
 
@@ -11,7 +12,7 @@ export function Footer() {
     <footer className="border-t border-border-secondary bg-surface-bg px-6 py-4">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 sm:flex-row">
         <p className="text-xs text-muted-foreground">
-          Copyright © 2026 TDTS
+          <GroupInfoDialog />
         </p>
 
         <div className="flex items-center gap-5 text-xs text-muted-foreground">
