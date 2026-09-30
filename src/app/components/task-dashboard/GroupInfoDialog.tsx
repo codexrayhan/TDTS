@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 
@@ -40,10 +40,11 @@ export function GroupInfoDialog({ label = `Copyright © ${YEAR} ${PROJECT_NAME}`
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="cursor-pointer underline-offset-4 hover:underline"
+        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-brand-primary/40 bg-brand-tertiary px-3 py-1 text-xs font-bold text-brand-primary shadow-sm transition hover:-translate-y-0.5 hover:bg-brand-primary hover:text-white hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
         aria-label="About our group and project"
-        title="About our group and project"
+        title="Click to see our group and project details"
       >
+        <Info className="h-3.5 w-3.5" />
         {label}
       </button>
 
