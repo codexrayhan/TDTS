@@ -4,8 +4,14 @@ import { db } from "../db";
 import { hashPassword, signToken, toClientRole, toDbRole, verifyPassword } from "../auth";
 
 const router = Router();
-const credentials = z.object({ email: z.string().email(), password: z.string().min(8) });
-const signupInput = credentials.extend({ name: z.string().min(2), role: z.enum(["admin", "super", "employee"]) });
+const credentials = z.object({
+  email: z.string().trim().email().max(254),
+  password: z.string().min(8).max(72),
+});
+const signupInput = credentials.extend({
+  name: z.string().trim().min(2).max(100),
+  role: z.enum(["admin", "super", "employee"]),
+});
 
 router.post("/login", async (req: any, res: any) => {
   const parsed = credentials.safeParse(req.body);
@@ -21,16 +27,25 @@ router.post("/login", async (req: any, res: any) => {
 router.post("/signup", async (req: any, res: any) => {
   const parsed = signupInput.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Please complete all signup fields" });
+  if (parsed.data.role === "super") {
+    return res.status(403).json({ error: "Super Admin accounts cannot be self-registered" });
+  }
   const email = parsed.data.email.toLowerCase();
   if (await db.user.findUnique({ where: { email } })) return res.status(409).json({ error: "Email already registered" });
-  const user = await db.user.create({
-    data: {
-      email,
-      name: parsed.data.name,
-      passwordHash: await hashPassword(parsed.data.password),
-      role: toDbRole(parsed.data.role),
-    },
-  });
+  let user;
+  try {
+    user = await db.user.create({
+      data: {
+        email,
+        name: parsed.data.name,
+        passwordHash: await hashPassword(parsed.data.password),
+        role: toDbRole(parsed.data.role),
+      },
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code === "P2002") return res.status(409).json({ error: "Email already registered" });
+    throw error;
+  }
   const clientUser = { id: user.id, name: user.name, email: user.email, role: toClientRole(user.role) };
   return res.status(201).json({ token: signToken(clientUser), user: clientUser });
 });

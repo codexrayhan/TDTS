@@ -79,6 +79,11 @@ function AppRuntime() {
   useEffect(() => { if (!themeInitialized) return; if (theme === "light" || theme === "dark") window.localStorage.setItem("tdts-theme", theme); }, [theme, themeInitialized]);
   useEffect(() => { if (appState === "app") window.localStorage.setItem("tdts-session", JSON.stringify({ role, screen, token } satisfies StoredSession)); }, [appState, role, screen, token]);
   useEffect(() => { if (!isMockMode() && appState === "app" && !token) { window.localStorage.removeItem("tdts-session"); setAppState("landing"); } }, [appState, token]);
+  useEffect(() => {
+    if (isMockMode() || appState !== "app" || !user || user.role === role) return;
+    setRole(user.role);
+    setScreen((current) => canRoleAccess(user.role, current) ? current : ROLE_HOME[user.role]);
+  }, [appState, role, user]);
 
   const enterApp = useCallback((nextRole: Role, tour = false) => { setRole(nextRole); setScreen(ROLE_HOME[nextRole]); setRequiredRole(undefined); setAppState("app"); setShowTour(tour); }, []);
   const navigate = useCallback((id: ScreenId) => { if (!canRoleAccess(role, id)) { setRequiredRole(getRoleFromScreen(id)); setScreen("access-denied"); return; } setRequiredRole(undefined); setScreen(id); }, [role]);

@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 
 const DEFAULT_DATABASE_URL = "file:./dev.db";
+const DEFAULT_JWT_SECRET = "tdts-development-secret-change-me";
 
 type ProcessLike = {
   env?: Record<string, string | undefined>;
@@ -36,9 +37,13 @@ export function resolveDatabaseUrl(value = DEFAULT_DATABASE_URL) {
 
 export function getServerEnv() {
   const env = getProcessLike()?.env ?? {};
+  const jwtSecret = env.JWT_SECRET || DEFAULT_JWT_SECRET;
+  if (env.NODE_ENV === "production" && jwtSecret === DEFAULT_JWT_SECRET) {
+    throw new Error("JWT_SECRET must be set to a strong, non-default value in production");
+  }
   return {
     DATABASE_URL: resolveDatabaseUrl(env.DATABASE_URL || DEFAULT_DATABASE_URL),
-    JWT_SECRET: env.JWT_SECRET || "tdts-development-secret-change-me",
+    JWT_SECRET: jwtSecret,
     OPENAI_API_KEY: env.OPENAI_API_KEY || "",
     PORT: Number(env.PORT || 8787),
   };

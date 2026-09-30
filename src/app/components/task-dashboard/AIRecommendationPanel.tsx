@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/
 import { Button } from "../ui/button";
 import { AppAvatar } from "./AppAvatar";
 import { aiProfiles, employees as fallbackEmployees, type Employee, type EmployeeId } from "./data";
-import { getAIRecommendations, getEmployees, isMockMode, type Recommendation } from "../../lib/api";
+import { getAIRecommendations, getEmployees, isMockMode, type Recommendation, type RecommendationTaskInput } from "../../lib/api";
 
 function MatchRing({ score }: { score: number }) {
   const value = useMotionValue(0);
@@ -54,17 +54,21 @@ function mockRecommendations(): Recommendation[] {
 }
 
 export function AIRecommendationPanel({
-  taskId = "t6",
+  taskId,
+  task,
   recommended,
   onAssign,
   condensed = false,
 }: {
   taskId?: string;
+  task?: RecommendationTaskInput;
   recommended?: EmployeeId;
   onAssign: (id: EmployeeId) => void;
   condensed?: boolean;
 }) {
   const mock = isMockMode();
+  const draftReady = Boolean(task && task.title.trim().length >= 2 && task.deadline && task.project.trim());
+  const hasRequest = Boolean(taskId || draftReady);
   const [recommendations, setRecommendations] = useState<Recommendation[] | null>(() => mock ? mockRecommendations() : null);
   const [source, setSource] = useState<"openai" | "fallback" | "mock">(() => mock ? "mock" : "fallback");
   const [people, setPeople] = useState<Employee[]>(() => mock ? fallbackEmployees : []);
@@ -72,26 +76,35 @@ export function AIRecommendationPanel({
 
   useEffect(() => {
     if (mock) return;
+    if (!hasRequest) {
+      setRecommendations(null);
+      setFailed(false);
+      return;
+    }
+
     let active = true;
     setRecommendations(null);
     setFailed(false);
-    const minimumDelay = new Promise((resolve) => setTimeout(resolve, 800));
-    Promise.all([getAIRecommendations(taskId), getEmployees(), minimumDelay])
-      .then(([response, employees]) => {
-        if (!active) return;
-        setRecommendations(response.recommendations);
-        setSource(response.source);
-        setPeople(employees);
-      })
-      .catch(() => {
-        if (!active) return;
-        setFailed(true);
-        setSource("fallback");
-        setRecommendations(mockRecommendations());
-        setPeople(fallbackEmployees);
-      });
-    return () => { active = false; };
-  }, [mock, taskId]);
+    const timer = window.setTimeout(() => {
+      const request = taskId ? { taskId } : { task: task! };
+      const minimumDelay = new Promise((resolve) => setTimeout(resolve, 800));
+      Promise.all([getAIRecommendations(request), getEmployees(), minimumDelay])
+        .then(([response, employees]) => {
+          if (!active) return;
+          setRecommendations(response.recommendations);
+          setSource(response.source);
+          setPeople(employees);
+        })
+        .catch(() => {
+          if (!active) return;
+          setFailed(true);
+          setSource("fallback");
+          setRecommendations(mockRecommendations());
+          setPeople(fallbackEmployees);
+        });
+    }, taskId ? 0 : 450);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [mock, hasRequest, taskId, task?.title, task?.description, task?.priority, task?.deadline, task?.project]);
 
   const ordered = useMemo(() => {
     if (!recommendations) return null;
@@ -99,6 +112,15 @@ export function AIRecommendationPanel({
     const selected = recommendations.find((item) => item.employeeId === recommended);
     return selected ? [selected, ...recommendations.filter((item) => item.employeeId !== recommended)] : recommendations;
   }, [recommendations, recommended, source]);
+
+  if (!mock && !hasRequest) {
+    return (
+      <div className={`flex items-center gap-3 rounded-xl border border-brand-primary/20 bg-brand-tertiary/55 ${condensed ? "min-h-12 px-3 py-2" : "p-4"}`}>
+        <Sparkles className="h-4 w-4 text-brand-primary" />
+        <div><div className="text-sm font-semibold text-brand-primary">AI recommendation ready when the task is</div>{!condensed && <div className="text-xs text-muted-foreground">Add a task title and due date so TDTS can score the real work instead of a sample task.</div>}</div>
+      </div>
+    );
+  }
 
   if (!ordered) {
     return (

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { z } from "zod";
 import { getServerEnv } from "./env";
 
 export type TokenUser = {
@@ -8,6 +9,15 @@ export type TokenUser = {
   email: string;
   role: "admin" | "super" | "employee";
 };
+
+const tokenUserSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(["admin", "super", "employee"]),
+  iat: z.number().optional(),
+  exp: z.number(),
+});
 
 export function toClientRole(role: string): TokenUser["role"] {
   if (role === "SUPER_ADMIN") return "super";
@@ -34,7 +44,8 @@ export function signToken(user: TokenUser) {
 }
 
 export function verifyToken(token: string) {
-  return jwt.verify(token, getServerEnv().JWT_SECRET, { algorithms: ["HS256"] }) as TokenUser & { exp: number };
+  const payload = jwt.verify(token, getServerEnv().JWT_SECRET, { algorithms: ["HS256"] });
+  return tokenUserSchema.parse(payload) as TokenUser & { exp: number; iat?: number };
 }
 
 export function requireAuth(req: any, res: any, next: any) {
@@ -47,4 +58,13 @@ export function requireAuth(req: any, res: any, next: any) {
   } catch {
     return res.status(401).json({ error: "Session expired" });
   }
+}
+
+export function requireRole(...roles: TokenUser["role"][]) {
+  return (req: any, res: any, next: any) => {
+    const user = req.user as TokenUser | undefined;
+    if (!user) return res.status(401).json({ error: "Authentication required" });
+    if (!roles.includes(user.role)) return res.status(403).json({ error: "You do not have permission to perform this action" });
+    return next();
+  };
 }

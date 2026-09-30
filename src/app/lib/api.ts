@@ -22,6 +22,8 @@ export type CreateTaskInput = {
   project: string;
   assigneeId?: EmployeeId | string | null;
 };
+export type RecommendationTaskInput = Pick<CreateTaskInput, "title" | "description" | "priority" | "deadline" | "project">;
+export type RecommendationRequest = { taskId?: string; task?: RecommendationTaskInput };
 export type Recommendation = { employeeId: string; score: number; reasons: string[]; alternatives?: string[] };
 export type RecommendationResponse = { recommendations: Recommendation[]; source: "openai" | "fallback" | "mock" };
 export type LeaderboardEntry = { id: string; points: number; completion: number; employee: Employee };
@@ -252,7 +254,7 @@ export async function getPerformanceTrend() {
   }));
 }
 
-export async function getAIRecommendations(taskId: string): Promise<RecommendationResponse> {
+export async function getAIRecommendations(input: string | RecommendationRequest): Promise<RecommendationResponse> {
   if (USE_MOCK) {
     return {
       source: "mock",
@@ -261,5 +263,6 @@ export async function getAIRecommendations(taskId: string): Promise<Recommendati
         .sort((a, b) => b.score - a.score),
     };
   }
-  return request<RecommendationResponse>("/ai/recommend", { method: "POST", body: JSON.stringify({ taskId }) });
+  const payload = typeof input === "string" ? { taskId: input } : input;
+  return request<RecommendationResponse>("/ai/recommend", { method: "POST", body: JSON.stringify(payload) });
 }
