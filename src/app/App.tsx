@@ -11,6 +11,7 @@ import { OnboardingTour } from "./components/task-dashboard/OnboardingTour";
 import { LoadingScreen } from "./components/task-dashboard/screens/LoadingScreen";
 import { LandingScreen } from "./components/task-dashboard/screens/LandingScreen";
 import { PricingScreen } from "./components/task-dashboard/screens/PricingScreen";
+import { DocumentationScreen } from "./components/task-dashboard/screens/DocumentationScreen";
 import { LoginScreen } from "./components/task-dashboard/screens/LoginScreen";
 import { ForgotPasswordScreen, ResetPasswordScreen, SignUpScreen, SsoRedirectScreen } from "./components/task-dashboard/screens/AuthScreens";
 import { DashboardScreen } from "./components/task-dashboard/screens/DashboardScreen";
@@ -36,7 +37,7 @@ const AllProjectsScreen = lazy(() => import("./components/task-dashboard/screens
 const ExportCsvScreen = lazy(() => import("./components/task-dashboard/screens/ExportCsvScreen").then((module) => ({ default: module.ExportCsvScreen })));
 const MyPerformanceScreen = lazy(() => import("./components/task-dashboard/screens/MyPerformanceScreen").then((module) => ({ default: module.MyPerformanceScreen })));
 
-export type AppState = "loading" | "landing" | "pricing" | "login" | "signup" | "forgot" | "reset" | "sso" | "app";
+export type AppState = "loading" | "landing" | "pricing" | "docs" | "login" | "signup" | "forgot" | "reset" | "sso" | "app";
 type StoredSession = { role: Role; screen: ScreenId; token?: string | null };
 
 function readSession(): StoredSession | null {
@@ -110,8 +111,9 @@ function AppRuntime() {
   let content: ReactNode;
   switch (appState) {
     case "loading": content = <LoadingScreen onComplete={() => setAppState("landing")} />; break;
-    case "landing": content = <LandingScreen onGetStarted={() => setAppState("signup")} onLogin={() => setAppState("login")} onPricing={() => setAppState("pricing")} />; break;
+    case "landing": content = <LandingScreen onGetStarted={() => setAppState("signup")} onLogin={() => setAppState("login")} onPricing={() => setAppState("pricing")} onDocs={() => setAppState("docs")} />; break;
     case "pricing": content = <PricingScreen onBack={() => setAppState("landing")} onGetStarted={() => setAppState("signup")} />; break;
+    case "docs": content = <DocumentationScreen onBack={() => setAppState("landing")} onLogin={() => setAppState("login")} onGetStarted={() => setAppState("signup")} />; break;
     case "login": content = <LoginScreen onLogin={(nextRole) => enterApp(nextRole)} onSignUp={() => setAppState("signup")} onForgot={() => setAppState("forgot")} onSso={() => setAppState("sso")} onBack={() => setAppState("landing")} />; break;
     case "signup": content = <SignUpScreen onComplete={(nextRole) => enterApp(nextRole, true)} onBack={() => setAppState("landing")} />; break;
     case "forgot": content = <ForgotPasswordScreen onBack={() => setAppState("login")} onReset={() => setAppState("reset")} />; break;

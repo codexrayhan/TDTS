@@ -54,6 +54,15 @@ const roleGuides = {
 
 type RoleKey = keyof typeof roleGuides;
 
+const architecture = [
+  ["Frontend", "React with TypeScript. Tailwind CSS handles the styling and react-dnd powers drag and drop on the Kanban board."],
+  ["Backend", "An Express server with REST APIs for auth, tasks, AI, leaderboard and rewards. Every request body is validated with Zod."],
+  ["Database", "Prisma ORM with an SQLite database. The main tables are User, Employee, Task and Reward."],
+  ["AI delegation", "OpenAI gpt-4o-mini scores each employee from 0 to 100 and explains why. If there is no API key or the call fails, built-in fallback profiles are used."],
+  ["Security", "Passwords are hashed with bcrypt. Login issues a 7-day JWT, and protected routes reject requests without a valid token."],
+  ["Access control", "Three roles, each with its own home screen and menu. A screen the role cannot use shows an Access Denied page."],
+] as const;
+
 const comparison = [
   ["Main goal", "Give the right task to the right person and track it to done.", "Broad issue and project tracking, flexible for many kinds of teams."],
   ["Getting started", "Sign up, pick a role and use ready-made views for it.", "Projects, issue types and workflows usually need to be configured first."],
@@ -70,7 +79,7 @@ export function DocumentationSection() {
   const guide = roleGuides[role];
 
   return (
-    <section id="docs" className="mx-auto max-w-7xl scroll-mt-20 px-5 py-20">
+    <div className="mx-auto max-w-7xl px-5 py-10">
       <div className="max-w-2xl">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-tertiary px-3 py-1 text-xs font-semibold text-brand-primary">
           <BookOpen className="h-3.5 w-3.5" />Documentation
@@ -81,7 +90,7 @@ export function DocumentationSection() {
         </p>
       </div>
 
-      <ol className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <ol id="how-it-works" className="mt-8 grid scroll-mt-24 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {steps.map(({ icon: Icon, title, text }) => (
           <li key={title} className="tdts-card p-5">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-tertiary text-brand-primary"><Icon className="h-5 w-5" /></span>
@@ -91,7 +100,7 @@ export function DocumentationSection() {
         ))}
       </ol>
 
-      <div className="mt-14">
+      <div id="by-role" className="mt-14 scroll-mt-24">
         <h3 className="text-2xl font-semibold tracking-[-.02em]">How to use it by role</h3>
         <p className="mt-2 text-sm text-muted-foreground">Each role has its own home screen and menu, so nobody sees screens they do not need.</p>
 
@@ -126,7 +135,20 @@ export function DocumentationSection() {
         </div>
       </div>
 
-      <div className="mt-14">
+      <div id="architecture" className="mt-14 scroll-mt-24">
+        <h3 className="text-2xl font-semibold tracking-[-.02em]">Technology and architecture</h3>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">How the pieces fit together behind the screens.</p>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {architecture.map(([title, text]) => (
+            <article key={title} className="tdts-card p-5">
+              <h4 className="font-semibold">{title}</h4>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div id="vs-jira" className="mt-14 scroll-mt-24">
         <h3 className="text-2xl font-semibold tracking-[-.02em]">TDTS compared with Jira</h3>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Jira is a powerful, widely used tool. TDTS takes a different approach: less setup and a sharper focus on delegation and motivation.
@@ -158,6 +180,6 @@ export function DocumentationSection() {
           Jira is far more mature and connects with many other tools, so large organisations may still prefer it. TDTS is best for small teams that want simple, guided delegation with almost no setup.
         </p>
       </div>
-    </section>
+    </div>
   );
 }
