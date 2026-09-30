@@ -9,13 +9,13 @@ const GROUP_NAME = "কিংকর্তব্যবিমূঢ়";
 const COURSE = "Web Programming Lab";
 const YEAR = "2026";
 const SEMESTER = ""; // optional, e.g. "Spring 2026" (hidden if empty)
-const FACULTY = ""; // optional, e.g. "Course teacher name" (hidden if empty)
+const FACULTY = "Nahid Hossain & Asif Abrar"; // optional, e.g. "Course teacher name" (hidden if empty)
 const REPO_URL = "https://github.com/codexrayhan/TDTS";
 
 const PURPOSE =
   "TDTS was built as our Web Programming Lab project. It helps teams delegate tasks intelligently, track work in real time, and reward the people who deliver consistently.";
 
-const MEMBERS = ["Md Rayhan Hossain", "Shwagatom Malakar", "Shushmita Paul Mou", "Pavel", "Thuha"];
+const MEMBERS = ["Md Rayhan Hossain", "Swagotam Malakar", "Shushmita Paul Mou", "Pavel", "Thuha"];
 
 const FEATURES = [
   "Login and signup with JWT authentication",
