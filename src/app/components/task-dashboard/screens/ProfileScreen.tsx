@@ -6,9 +6,18 @@ import { Input } from "../../ui/input";
 import { AppAvatar } from "../AppAvatar";
 import { ROLE_HOME, type Role, type ScreenId } from "../AppShell";
 import { roleProfiles } from "../data";
+import type { AuthUser } from "../../../lib/api";
 
-export function ProfileScreen({ role = "admin", onNavigate }: { role?: Role; onNavigate?: (id: ScreenId) => void }) {
-  const profile = roleProfiles[role];
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = (parts[0]?.[0] || "") + (parts[1]?.[0] || "");
+  return initials.toUpperCase() || "U";
+}
+
+export function ProfileScreen({ role = "admin", user, onNavigate }: { role?: Role; user?: AuthUser | null; onNavigate?: (id: ScreenId) => void }) {
+  const profile = user
+    ? { name: user.name, email: user.email, initials: initialsFor(user.name), badge: roleProfiles[role].badge }
+    : roleProfiles[role];
   const { register, handleSubmit } = useForm({
     defaultValues: { name: profile.name, email: profile.email, current: "", next: "" },
   });
